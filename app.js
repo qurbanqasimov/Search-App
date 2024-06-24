@@ -1,46 +1,50 @@
-document.querySelector("#start-quiz").addEventListener("click", async () => {
-    try {
-        const response = await fetch('https://opentdb.com/api.php?amount=5&type=multiple');
-        const data = await response.json();
-        const questions = data.results;
+const formWrapper = document.querySelector(".form-wrapper")
+const form = document.querySelector("#form")
+const searcInput = document.querySelector("#src-input")
+const buttonWrapper = document.querySelector(".btn-wrapper")
+const searchBtn = document.querySelector("#search-btn")
+const clearBtn = document.querySelector("#clear-btn")
+const imgListWapper = document.querySelector(".imgList-wrapper")
 
-        const quizContainer = document.getElementById('quiz-container');
-        quizContainer.innerHTML = ''; // Mevcut içeriği temizle
+runEventListenrs()
+function runEventListenrs(){
+    form.addEventListener("submit",search)
+    clearBtn.addEventListener("click",clear)
+}
 
-        questions.forEach((question, index) => {
-            const questionElement = document.createElement('div');
-            questionElement.classList.add('question');
-            questionElement.innerHTML = `
-                <h3>Question ${index + 1}: ${question.question}</h3>
-                <ul class="answers">
-                    ${[question.correct_answer, ...question.incorrect_answers]
-                        .sort(() => Math.random() - 0.5)
-                        .map(answer => `<li><label><input type="radio" name="question${index}" value="${answer}"> ${answer}</label></li>`)
-                        .join('')}
-                </ul>
-            `;
-            quizContainer.appendChild(questionElement);
-        });
+function clear(){
+    searcInput.value=""
+    imgListWapper.innerHTML = ""
+}
 
-        document.getElementById('submit-quiz').style.display = 'block';
-    } catch (error) {
-        console.error('Error fetching trivia questions:', error);
-    }
-});
-
-document.querySelector("#submit-quiz").addEventListener("click", () => {
-    const questions = document.querySelectorAll('.question');
-    let score = 0;
-
-    questions.forEach((question, index) => {
-        const selectedAnswer = document.querySelector(`input[name="question${index}"]:checked`);
-        if (selectedAnswer) {
-            const correctAnswer = data.results[index].correct_answer;
-            if (selectedAnswer.value === correctAnswer) {
-                score++;
-            }
+function search(e){
+    const value = searcInput.value.trim()
+    fetch(`https://api.unsplash.com/search/photos?query=${value}`,{
+        method:"GET",
+        headers:{
+            Authorization :"Client-ID fRD6uL0M4cZjubfTKAaM1PsdcoYCH3Xib7-UjL_GnwE"
         }
-    });
+    })
+    .then((res)=> res.json())
+    .then((data)=>{
+        Array.from(data.results).forEach((img)=>{
+            // console.log(img.urls.small)
+            addImgUI(img.urls.small)
+        })
+    })
+    .catch((err)=> console.log(err))
+    e.preventDefault()
+}
 
-    alert(`You scored ${score} out of ${questions.length}`);
-});
+function addImgUI(url){
+    const div = document.createElement("div")
+    div.classList= "card"
+
+    const img = document.createElement("img")
+    img.setAttribute("src",url)
+    img.width="350"
+    img.height="350"
+    img.style.borderRadius= "20px"
+    div.appendChild(img)
+    imgListWapper.appendChild(div)
+}
